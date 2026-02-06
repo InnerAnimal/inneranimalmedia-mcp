@@ -11,6 +11,11 @@ routes = [
 
 workers_dev = false
 
+# Static assets — auth page at /
+[assets]
+directory = "./static"
+html_handling = "auto-trailing-slash"
+
 # Remove old MyMCP Durable Object from previous deploy
 [[migrations]]
 tag = "v2"

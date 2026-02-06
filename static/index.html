@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inner Animal Media | Mission Control</title>
+    <meta name="description" content="Inner Animal Media — Mission Control Portal">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --glass-white: rgba(255, 255, 255, 0.08);
+            --glass-white-card: rgba(255, 255, 255, 0.1);
+            --glass-white-hover: rgba(255, 255, 255, 0.14);
+            --glass-border: rgba(255, 255, 255, 0.16);
+            --glass-border-strong: rgba(255, 255, 255, 0.22);
+            --glass-inset-glow: rgba(255, 255, 255, 0.12);
+            --text-bright: #ffffff;
+            --text-primary: rgba(255, 255, 255, 0.92);
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --text-muted: rgba(255, 255, 255, 0.3);
+            --accent-cyan: #22d3ee;
+            --accent-blue: #0ea5e9;
+            --accent-teal: #2dd4bf;
+            --danger: #f87171;
+            --deep-void: #030308;
+            --font-display: 'Outfit', -apple-system, sans-serif;
+            --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: var(--deep-void);
+            font-family: var(--font-display);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        ::selection { background: rgba(34, 211, 238, 0.3); color: #fff; }
+
+        #galaxy-canvas { position: fixed; inset: 0; z-index: 0; display: block; }
+
+        .orbit-system {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0; height: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .orbit-ellipse {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            top: 50%; left: 50%;
+        }
+
+        .orbit-ellipse:nth-child(1) {
+            width: 520px; height: 520px;
+            margin: -260px 0 0 -260px;
+            border-color: rgba(14, 165, 233, 0.07);
+            transform: rotateX(72deg) rotateZ(-20deg);
+            animation: orbitDrift 45s linear infinite;
+        }
+        .orbit-ellipse:nth-child(2) {
+            width: 740px; height: 740px;
+            margin: -370px 0 0 -370px;
+            border-color: rgba(45, 212, 191, 0.05);
+            transform: rotateX(68deg) rotateZ(30deg);
+            animation: orbitDrift 62s linear infinite reverse;
+        }
+        .orbit-ellipse:nth-child(3) {
+            width: 980px; height: 980px;
+            margin: -490px 0 0 -490px;
+            border-color: rgba(34, 211, 238, 0.04);
+            transform: rotateX(75deg) rotateZ(-45deg);
+            animation: orbitDrift 80s linear infinite;
+        }
+        .orbit-ellipse:nth-child(4) {
+            width: 380px; height: 380px;
+            margin: -190px 0 0 -190px;
+            border-color: rgba(255, 255, 255, 0.03);
+            transform: rotateX(60deg) rotateZ(10deg);
+            animation: orbitDrift 35s linear infinite reverse;
+        }
+
+        @keyframes orbitDrift {
+            from { transform: rotateX(72deg) rotateZ(0deg); }
+            to { transform: rotateX(72deg) rotateZ(360deg); }
+        }
+
+        .header-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: rgba(3, 3, 8, 0.55);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .header-brand:hover { opacity: 0.85; }
+
+        .header-brand-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .header-brand-info { display: flex; flex-direction: column; gap: 0; }
+
+        .header-brand-name {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-bright);
+            letter-spacing: -0.01em;
+            line-height: 1.25;
+        }
+
+        .header-brand-tagline {
+            font-size: 9.5px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-family: var(--font-mono);
+            line-height: 1.3;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 10px; }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 100px;
+        }
+
+        .status-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--accent-teal);
+            box-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+            animation: statusPulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(45, 212, 191, 0.6); }
+            50% { opacity: 0.4; box-shadow: 0 0 4px rgba(45, 212, 191, 0.3); }
+        }
+
+        .status-label {
+            font-size: 9px;
+            font-family: var(--font-mono);
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+
+        .auth-scene {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            padding-top: 78px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 390px;
+            background: var(--glass-white-card);
+            backdrop-filter: blur(50px) saturate(1.5);
+            -webkit-backdrop-filter: blur(50px) saturate(1.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow:
+                0 40px 80px rgba(0, 0, 0, 0.5),
+                0 0 1px 0 var(--glass-inset-glow) inset,
+                0 1px 0 0 rgba(255, 255, 255, 0.1) inset;
+            animation: cardEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+        }
+
+        @keyframes cardEntry {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(6px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        .card-header {
+            padding: 32px 32px 0;
+            text-align: center;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-icon {
+            width: 54px; height: 54px;
+            margin: 0 auto 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-icon svg {
+            width: 28px; height: 28px;
+            color: var(--accent-cyan);
+            filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.3));
+        }
+
+        .card-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.03em;
+            margin-bottom: 3px;
+        }
+
+        .card-header p { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+
+        .card-body { padding: 26px 32px 28px; }
+
+        .oauth-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 22px;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+        }
+
+        .btn-oauth {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            height: 48px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-display);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.005em;
+        }
+
+        .btn-oauth:active { transform: scale(0.97); }
+        .btn-oauth svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+        .btn-google {
+            background: rgba(255, 255, 255, 0.94);
+            color: #1f2937;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        .btn-google:hover {
+            background: #ffffff;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+            transform: translateY(-1px);
+        }
+
+        .btn-github {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .btn-github:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.16);
+            transform: translateY(-1px);
+        }
+
+        .btn-oauth.is-loading {
+            pointer-events: none;
+            opacity: 0.55;
+        }
+        .btn-oauth.is-loading::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+            animation: loadShimmer 1.4s infinite;
+        }
+        @keyframes loadShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .divider-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.65s both;
+        }
+
+        .divider-row::before,
+        .divider-row::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .divider-row span {
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+            font-family: var(--font-mono);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap svg.input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px; height: 16px;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: color 0.25s;
+        }
+
+        .input-wrap:focus-within svg.input-icon { color: var(--accent-cyan); }
+
+        .field {
+            width: 100%;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 14px;
+            padding: 0 16px 0 42px;
+            font-size: 14px;
+            font-family: var(--font-display);
+            font-weight: 500;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.25s;
+        }
+
+        .field::placeholder { color: var(--text-muted); font-weight: 400; }
+
+        .field:focus {
+            border-color: rgba(34, 211, 238, 0.25);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.06);
+        }
+
+        .error-msg {
+            display: none;
+            font-size: 12px;
+            color: var(--danger);
+            padding: 10px 14px;
+            background: rgba(248, 113, 113, 0.07);
+            border: 1px solid rgba(248, 113, 113, 0.1);
+            border-radius: 10px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .error-msg.active { display: block; }
+
+        .btn-submit {
+            width: 100%;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #0284c7 100%);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: var(--font-display);
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow:
+                0 4px 18px rgba(14, 165, 233, 0.25),
+                0 0 0 1px rgba(14, 165, 233, 0.2) inset;
+            letter-spacing: -0.01em;
+            margin-top: 4px;
+        }
+
+        .btn-submit:hover {
+            box-shadow: 0 8px 28px rgba(14, 165, 233, 0.35), 0 0 0 1px rgba(14, 165, 233, 0.3) inset;
+            transform: translateY(-1px);
+        }
+        .btn-submit:active { transform: scale(0.975) translateY(0); }
+
+        .card-footer {
+            padding: 0 32px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+        }
+
+        .card-footer-text {
+            font-size: 9px;
+            font-family: var(--font-mono);
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px 3px 5px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+        }
+
+        .secure-badge svg { width: 10px; height: 10px; color: var(--accent-teal); }
+
+        .secure-badge span {
+            font-size: 8.5px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            z-index: 300;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+            transform: translateX(-50%) translateY(80px);
+            opacity: 0;
+            transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        .toast.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 480px) {
+            .login-card { max-width: 100%; border-radius: 22px; }
+            .card-header { padding: 26px 24px 0; }
+            .card-body { padding: 22px 24px 24px; }
+            .card-footer { padding: 0 24px 18px; }
+            .header-brand-info { display: none; }
+            .header-bar { padding: 0 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="galaxy-canvas"></canvas>
+
+    <div class="orbit-system">
+        <div class="orbit-ellipse"></div>
+        <div class="orbit-ellipse"></div>
+        <div class="orbit-ellipse"></div>
+        <div class="orbit-ellipse"></div>
+    </div>
+
+    <header class="header-bar">
+        <a href="https://inneranimalmedia.com" class="header-brand" target="_blank" rel="noopener">
+            <img
+                src="https://imagedelivery.net/g7wf09fCONpnidkRnR_5vw/dbb316af-9c97-4959-f09f-bf58b2783d00/avatar"
+                alt="Inner Animal Media"
+                class="header-brand-logo"
+                loading="eager"
+            >
+            <div class="header-brand-info">
+                <span class="header-brand-name">Inner Animal Media</span>
+                <span class="header-brand-tagline">Mission Control</span>
+            </div>
+        </a>
+        <div class="header-right">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span class="status-label">SYSTEMS ONLINE</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-scene" id="authScene">
+        <div class="login-card" id="loginCard">
+            <div class="card-header">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                        <polyline points="2 17 12 22 22 17"/>
+                        <polyline points="2 12 12 17 22 12"/>
+                    </svg>
+                </div>
+                <h1>Inner Animal Media</h1>
+                <p>Sign in to Mission Control</p>
+            </div>
+
+            <div class="card-body">
+                <div class="oauth-group">
+                    <button type="button" class="btn-oauth btn-google" id="btnGoogle" onclick="IAMAuth.googleSignIn()">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Continue with Google
+                    </button>
+
+                    <button type="button" class="btn-oauth btn-github" id="btnGithub" onclick="IAMAuth.githubSignIn()">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/>
+                        </svg>
+                        Continue with GitHub
+                    </button>
+                </div>
+
+                <div class="divider-row">
+                    <span>or use password</span>
+                </div>
+
+                <form class="login-form" id="loginForm" onsubmit="event.preventDefault(); IAMAuth.passwordLogin();">
+                    <div class="input-wrap">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <input type="email" id="fieldEmail" class="field" placeholder="Email" autocomplete="email">
+                    </div>
+                    <div class="input-wrap">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <input type="password" id="fieldPassword" class="field" placeholder="Password" autocomplete="current-password" required>
+                    </div>
+                    <div class="error-msg" id="errorMsg"></div>
+                    <button type="submit" class="btn-submit">Sign in</button>
+                </form>
+            </div>
+
+            <div class="card-footer">
+                <span class="card-footer-text">Protected System · Authorized Personnel</span>
+                <div class="secure-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <span>ENCRYPTED</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    ;(function GalaxyEngine() {
+        const cvs = document.getElementById('galaxy-canvas');
+        const ctx = cvs.getContext('2d');
+        let W, H, stars = [];
+        function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+        class Star {
+            constructor() {
+                this.angle = Math.random() * Math.PI * 2;
+                this.dist = 40 + Math.random() * Math.min(W, H) * 0.52;
+                this.speed = (0.00015 + Math.random() * 0.0006) * (Math.random() > 0.5 ? 1 : -1);
+                this.tilt = 0.25 + Math.random() * 0.55;
+                this.size = 0.3 + Math.random() * 1.6;
+                this.alpha = 0.08 + Math.random() * 0.55;
+                this.baseAlpha = this.alpha;
+                this.hue = Math.random() > 0.65 ? 185 + Math.random() * 15 : 198 + Math.random() * 22;
+                this.flicker = 0.005 + Math.random() * 0.02;
+            }
+            update(t) {
+                this.angle += this.speed;
+                this.alpha = this.baseAlpha + Math.sin(t * this.flicker) * 0.12;
+                this.alpha = Math.max(0.04, Math.min(0.75, this.alpha));
+            }
+            draw(cx, cy) {
+                const x = cx + Math.cos(this.angle) * this.dist;
+                const y = cy + Math.sin(this.angle) * this.dist * this.tilt;
+                ctx.beginPath();
+                ctx.arc(x, y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'hsla(' + this.hue + ',55%,68%,' + this.alpha + ')';
+                ctx.fill();
+                if (this.size > 1.1) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, this.size * 3.5, 0, Math.PI * 2);
+                    ctx.fillStyle = 'hsla(' + this.hue + ',50%,65%,' + (this.alpha * 0.08) + ')';
+                    ctx.fill();
+                }
+            }
+        }
+        function initStars() {
+            stars = [];
+            const count = Math.min(Math.floor((W * H) / 3200), 550);
+            for (let i = 0; i < count; i++) stars.push(new Star());
+        }
+        function drawOrbits(cx, cy) {
+            const rings = [
+                { rx: 240, ry: 120, rot: -0.28, a: 0.035 },
+                { rx: 360, ry: 185, rot: 0.42, a: 0.028 },
+                { rx: 480, ry: 240, rot: -0.58, a: 0.022 },
+                { rx: 170, ry: 85, rot: 0.12, a: 0.032 },
+                { rx: 580, ry: 290, rot: 0.7, a: 0.015 },
+            ];
+            rings.forEach(r => {
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(r.rot);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r.rx, r.ry, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(14,165,233,' + r.a + ')';
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+                ctx.restore();
+            });
+        }
+        function drawCoreGlow(cx, cy) {
+            const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, 140);
+            g1.addColorStop(0, 'rgba(14,165,233,0.05)');
+            g1.addColorStop(0.4, 'rgba(45,212,191,0.025)');
+            g1.addColorStop(1, 'transparent');
+            ctx.fillStyle = g1;
+            ctx.fillRect(cx - 140, cy - 140, 280, 280);
+        }
+        function frame(t) {
+            ctx.clearRect(0, 0, W, H);
+            const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+            bg.addColorStop(0, '#090c16');
+            bg.addColorStop(0.45, '#060810');
+            bg.addColorStop(1, '#030305');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+            const cx = W / 2, cy = H / 2;
+            drawOrbits(cx, cy);
+            drawCoreGlow(cx, cy);
+            stars.forEach(s => { s.update(t); s.draw(cx, cy); });
+            requestAnimationFrame(frame);
+        }
+        resize();
+        initStars();
+        requestAnimationFrame(frame);
+        window.addEventListener('resize', function() { resize(); initStars(); });
+        document.addEventListener('mousemove', function(e) {
+            const card = document.getElementById('loginCard');
+            if (!card) return;
+            const dx = (e.clientX - W / 2) / W;
+            const dy = (e.clientY - H / 2) / H;
+            card.style.transform = 'translate(' + (dx * 5) + 'px, ' + (dy * 5) + 'px)';
+        });
+    })();
+    </script>
+
+    <script>
+    const AUTH_CONFIG = {
+        GOOGLE_CLIENT_ID: '1084611205156-0ds0qj2m0oduvt0ek7mkvoet8p3kh7is.apps.googleusercontent.com',
+        GITHUB_CLIENT_ID: 'Ov23liz6Q3zFcT1SFGyX',
+        API_BASE: 'https://inneranimalmedia.com',
+        REDIRECT_AFTER: 'https://inneranimalmedia.com/dashboard',
+        WHITELIST: ['meauxbility@gmail.com', 'inneranimalclothing@gmail.com'],
+    };
+
+    const IAMAuth = {
+        _gisReady: false,
+
+        googleSignIn() {
+            const btn = document.getElementById('btnGoogle');
+            btn?.classList.add('is-loading');
+
+            if (typeof google !== 'undefined' && google.accounts) {
+                this._initGIS();
+                google.accounts.id.prompt(notification => {
+                    btn?.classList.remove('is-loading');
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        this._googleRedirectFallback();
+                    }
+                });
+            } else {
+                this._googleRedirectFallback();
+            }
+        },
+
+        _initGIS() {
+            if (this._gisReady) return;
+            try {
+                google.accounts.id.initialize({
+                    client_id: AUTH_CONFIG.GOOGLE_CLIENT_ID,
+                    callback: resp => this._onGoogleCredential(resp),
+                    auto_select: false,
+                    cancel_on_tap_outside: true,
+                });
+                this._gisReady = true;
+            } catch (err) {
+                console.warn('[IAMAuth] GIS init error:', err);
+            }
+        },
+
+        _googleRedirectFallback() {
+            const state = this._newState('google');
+            const params = new URLSearchParams({
+                client_id: AUTH_CONFIG.GOOGLE_CLIENT_ID,
+                redirect_uri: AUTH_CONFIG.API_BASE + '/api/auth/google/callback',
+                response_type: 'code',
+                scope: 'openid email profile',
+                access_type: 'offline',
+                prompt: 'consent',
+                state,
+            });
+            location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+        },
+
+        async _onGoogleCredential(response) {
+            if (!response?.credential) return this._showError('Google sign-in failed.');
+            this._toast('Verifying identity...');
+            try {
+                const res = await fetch(AUTH_CONFIG.API_BASE + '/api/auth/google/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_token: response.credential }),
+                });
+                const data = await res.json();
+                if (data.ok && data.session) {
+                    this._storeSession(data);
+                    this._toast('Welcome, ' + (data.user?.name || 'operator'));
+                    setTimeout(() => location.replace(AUTH_CONFIG.REDIRECT_AFTER), 500);
+                } else {
+                    this._showError(data.error || 'Access denied.');
+                }
+            } catch (err) {
+                this._showError('Network error — check connection.');
+            }
+        },
+
+        githubSignIn() {
+            if (!AUTH_CONFIG.GITHUB_CLIENT_ID) {
+                this._toast('GitHub OAuth — coming soon');
+                return;
+            }
+            const btn = document.getElementById('btnGithub');
+            btn?.classList.add('is-loading');
+            const state = this._newState('github');
+            const params = new URLSearchParams({
+                client_id: AUTH_CONFIG.GITHUB_CLIENT_ID,
+                redirect_uri: AUTH_CONFIG.API_BASE + '/api/auth/github/callback',
+                scope: 'read:user user:email',
+                state,
+            });
+            location.href = 'https://github.com/login/oauth/authorize?' + params;
+        },
+
+        passwordLogin() {
+            const pw = document.getElementById('fieldPassword')?.value || '';
+            this._toast('Use Google or GitHub to sign in');
+            this._showError('Password sign-in requires API. Use OAuth.');
+        },
+
+        async handleCallback() {
+            const params = new URLSearchParams(location.search);
+            const code = params.get('code');
+            const stateParam = params.get('state');
+            if (!code || !stateParam) return;
+
+            const stored = sessionStorage.getItem('iam_oauth_state');
+            if (!stored) return this._showError('Invalid state. Please retry.');
+
+            const { provider } = JSON.parse(stored);
+            this._toast('Completing sign-in...');
+
+            try {
+                const res = await fetch(AUTH_CONFIG.API_BASE + `/api/auth/${provider}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(stateParam)}`);
+                const data = await res.json();
+                if (data.ok && data.session) {
+                    this._storeSession(data);
+                    sessionStorage.removeItem('iam_oauth_state');
+                    location.replace(AUTH_CONFIG.REDIRECT_AFTER);
+                } else {
+                    this._showError(data.error || 'Authentication failed.');
+                }
+            } catch (err) {
+                this._showError('Network error during callback.');
+            }
+        },
+
+        _newState(provider) {
+            const nonce = typeof crypto.randomUUID === 'function'
+                ? crypto.randomUUID()
+                : Math.random().toString(36).slice(2) + Date.now().toString(36);
+            const state = `${provider}:${nonce}`;
+            sessionStorage.setItem('iam_oauth_state', JSON.stringify({ provider, nonce }));
+            return state;
+        },
+
+        _storeSession(data) {
+            sessionStorage.setItem('iam_auth', '1');
+            if (data.user) sessionStorage.setItem('iam_user', JSON.stringify(data.user));
+            if (data.session?.token) sessionStorage.setItem('iam_token', data.session.token);
+        },
+
+        _showError(msg) {
+            const el = document.getElementById('errorMsg');
+            if (el) { el.textContent = msg; el.classList.add('active'); }
+            document.getElementById('btnGoogle')?.classList.remove('is-loading');
+            document.getElementById('btnGithub')?.classList.remove('is-loading');
+        },
+
+        _toast(msg) {
+            const el = document.getElementById('toast');
+            if (!el) return;
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), 3500);
+        },
+    };
+
+    window.addEventListener('load', () => {
+        if (typeof google !== 'undefined') IAMAuth._initGIS();
+    });
+
+    if (sessionStorage.getItem('iam_auth') === '1') {
+        document.getElementById('authScene').innerHTML =
+            '<p style="color:rgba(255,255,255,0.35);font-size:13px;font-family:var(--font-display);">Redirecting to dashboard...</p>';
+        location.replace(AUTH_CONFIG.REDIRECT_AFTER);
+    }
+
+    if (location.search.includes('code=')) IAMAuth.handleCallback();
+    </script>
+
+</body>
+</html>
