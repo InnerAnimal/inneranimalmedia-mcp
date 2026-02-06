@@ -1,0 +1,56 @@
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  INNER ANIMAL MEDIA — Platform Ecosystem (2D Wireframe)                          │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                        ┌──────────────────────────────┐
+                        │   inneranimalmedia.com       │
+                        │   (Main Site + Dashboard)    │
+                        └──────────────┬───────────────┘
+                                       │
+         ┌─────────────────────────────┼─────────────────────────────┐
+         │                             │                             │
+         ▼                             ▼                             ▼
+┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│ mcp.            │         │ meauxcad.       │         │ meauxsql.       │
+│ inneranimalmedia│         │ inneranimalmedia│         │ inneranimalmedia│
+│ .com            │         │ .com            │         │ .com            │
+│ (THIS MCP)      │         │ (CAD app)       │         │ (SQL app)       │
+└────────┬────────┘         └────────┬────────┘         └────────┬────────┘
+         │                           │                           │
+         │                  ┌────────┴────────┐                   │
+         │                  │ meauxgames.     │                   │
+         │                  │ inneranimalmedia│                   │
+         │                  │ .com            │                   │
+         │                  └────────┬────────┘                   │
+         │                           │                            │
+         └───────────────────────────┼────────────────────────────┘
+                                     │
+         ┌───────────────────────────┼────────────────────────────┐
+         │                           │                            │
+         ▼                           ▼                            ▼
+┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│ D1              │         │ R2              │         │ Hyperdrive      │
+│ inneranimalmedia│         │ inneranimalmedia│         │ → Supabase      │
+│ -business       │         │ -assets         │         │ Postgres        │
+│ (Registry,      │         │ splineicons     │         │ (Client data)   │
+│  AI, Auth)      │         │ (Static/CAD)    │         │                 │
+└─────────────────┘         └─────────────────┘         └─────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  CLIENT WORKERS (sibling to main)                                        │
+  │  pelicanpeptides | southernpetsanimalrescue | new-iberia-church |        │
+  │  pawlove | acemedical | anything-floors-and-more | lg3industries | ...   │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  PRODUCT WORKERS                                                         │
+  │  meauxcloud | meauxbility | meauxide | agent-command | mcprimeaux        │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  LEGEND:
+  • Main site: marketing, dashboard, API, auth, chess, contact
+  • MCP: AI tooling (list_workers, platform_info) — mcp.inneranimalmedia.com/mcp
+  • Apps: meauxcad (CAD), meauxsql (SQL), meauxgames (3D/games)
+  • D1: migrations, registry, AI tables, agent audit
+  • R2: public assets, Spline icons
+  • Hyperdrive: remote Postgres for analytics / client DBs

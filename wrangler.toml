@@ -1,0 +1,22 @@
+name = "inneranimal-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-01-20"
+compatibility_flags = ["nodejs_compat"]
+account_id = "ede6590ac0d2fb7daf155b35653457b2"
+
+routes = [
+  { pattern = "mcp.inneranimalmedia.com", zone_name = "inneranimalmedia.com", custom_domain = true },
+  { pattern = "www.mcp.inneranimalmedia.com", zone_name = "inneranimalmedia.com", custom_domain = true },
+]
+
+workers_dev = false
+
+# Remove old MyMCP Durable Object from previous deploy
+[[migrations]]
+tag = "v2"
+deleted_classes = ["MyMCP"]
+
+[vars]
+ENVIRONMENT = "production"
+
+# Secrets: CLOUDFLARE_API_TOKEN (for bindings/D1). Set in dashboard.
