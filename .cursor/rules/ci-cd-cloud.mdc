@@ -1,0 +1,12 @@
+---
+description: CI/CD + Cloudflare — deploy on push, R2 backup, multi-agent capable
+alwaysApply: false
+globs: ["**/.github/**", "**/wrangler*", "**/package.json"]
+---
+
+# CI/CD + Cloudflare Workflow
+
+- **Deploy:** Push to main triggers deploy. CLOUDFLARE_API_TOKEN required in GitHub Secrets.
+- **R2 Backup:** Each deploy backs up to `meaux-builds-backups/ci/{repo}/`.
+- **Secret handling:** Never commit tokens. Use env vars or GitHub Secrets only.
+- **Multi-agent:** Cursor agents can run in parallel; changes should be merge-safe.

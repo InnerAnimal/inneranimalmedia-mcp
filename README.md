@@ -21,9 +21,17 @@ npx wrangler deploy
 - [ECOSYSTEM-README.md](./ECOSYSTEM-README.md) — Human-friendly platform overview
 - [docs/PLATFORM_ECOSYSTEM_MAP.txt](./docs/PLATFORM_ECOSYSTEM_MAP.txt) — 2D ASCII wireframe
 
-## CI/CD
+## CI/CD (bulletproof)
 
-Push to `main` deploys via GitHub Actions. Add `CLOUDFLARE_API_TOKEN` as a repo secret (Settings → Secrets → Actions).
+**One secret:** `CLOUDFLARE_API_TOKEN`
+
+1. Settings → Secrets and variables → Actions → New repository secret
+2. Name: `CLOUDFLARE_API_TOKEN`
+3. Value: [Create token](https://dash.cloudflare.com/profile/api-tokens) → Edit Cloudflare Workers template
+
+**Flow:** Push to `main` → validate → deploy → R2 backup. PRs validate only.
+
+**Deploy key:** For SSH push/pull, use `git@github.com-inneranimal-mcp:InnerAnimal/inneranimalmedia-mcp.git`
 
 ## GitHub
 

@@ -12,6 +12,7 @@ dist/
 *.key
 *secret*
 *credentials*
+.deploy-keys/
 
 # IDE / OS
 .idea/
