@@ -3,10 +3,12 @@
  * Live: https://mcp.inneranimalmedia.com/mcp
  * Connects AI clients (Cursor, Copilot, Claude) to our 30+ Workers ecosystem.
  * R2 tools: r2_list, r2_search, r2_bucket_summary
+ * Telemetry: agent_telemetry tracking for LLM usage and costs
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { McpAgent } from "agents/mcp";
 import { z } from "zod";
+import { logTelemetry, queryTelemetry, getTelemetryStats } from "./lib/telemetry.js";
 
 interface Env {
   MCP_BUCKET?: R2Bucket;
@@ -237,6 +239,97 @@ export class InnerAnimalMCP extends McpAgent<Env> {
               text: JSON.stringify(summaries, null, 2),
             },
           ],
+        };
+      }
+    );
+
+    // === Agent Telemetry Tools ===
+
+    this.server.tool(
+      "telemetry_log",
+      {
+        session_id: z.string(),
+        agent_id: z.string(),
+        model_used: z.string(),
+        input_tokens: z.number().min(0),
+        output_tokens: z.number().min(0),
+        input_rate: z.number().min(0),
+        output_rate: z.number().min(0),
+        tool_choice: z.string().optional(),
+        cache_creation_input_tokens: z.number().min(0).optional(),
+        cache_read_input_tokens: z.number().min(0).optional(),
+        cache_write_rate: z.number().min(0).optional(),
+        cache_read_rate: z.number().min(0).optional(),
+        role_name: z.string().optional(),
+      },
+      async (params) => {
+        const env = currentEnv;
+        if (!env?.DB) return { content: [{ type: "text", text: "Error: DB not bound" }] };
+        
+        const result = await logTelemetry(env.DB, params);
+        
+        if (!result.success) {
+          return { content: [{ type: "text", text: `Telemetry logging failed: ${result.error}` }] };
+        }
+        
+        return { 
+          content: [{ 
+            type: "text", 
+            text: JSON.stringify({ success: true, id: result.id }, null, 2) 
+          }] 
+        };
+      }
+    );
+
+    this.server.tool(
+      "telemetry_query",
+      {
+        session_id: z.string().optional(),
+        agent_id: z.string().optional(),
+        start_timestamp: z.number().optional(),
+        end_timestamp: z.number().optional(),
+        limit: z.number().min(1).max(500).optional(),
+      },
+      async (options) => {
+        const env = currentEnv;
+        if (!env?.DB) return { content: [{ type: "text", text: "Error: DB not bound" }] };
+        
+        const result = await queryTelemetry(env.DB, options);
+        
+        if (!result.success) {
+          return { content: [{ type: "text", text: `Telemetry query failed: ${result.error}` }] };
+        }
+        
+        return { 
+          content: [{ 
+            type: "text", 
+            text: JSON.stringify({ success: true, count: result.data?.length ?? 0, records: result.data }, null, 2) 
+          }] 
+        };
+      }
+    );
+
+    this.server.tool(
+      "telemetry_stats",
+      {
+        session_id: z.string().optional(),
+        agent_id: z.string().optional(),
+      },
+      async (options) => {
+        const env = currentEnv;
+        if (!env?.DB) return { content: [{ type: "text", text: "Error: DB not bound" }] };
+        
+        const result = await getTelemetryStats(env.DB, options);
+        
+        if (!result.success) {
+          return { content: [{ type: "text", text: `Telemetry stats failed: ${result.error}` }] };
+        }
+        
+        return { 
+          content: [{ 
+            type: "text", 
+            text: JSON.stringify({ success: true, stats: result.stats }, null, 2) 
+          }] 
         };
       }
     );
