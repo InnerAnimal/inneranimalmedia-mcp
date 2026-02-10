@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipelines & Workflows | Inner Animal Media</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0A0A0F;
+            --bg-secondary: #13131A;
+            --bg-tertiary: #1A1A24;
+            --border-primary: rgba(255, 255, 255, 0.08);
+            --border-secondary: rgba(255, 255, 255, 0.12);
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --text-tertiary: #64748B;
+            --accent-blue: #3B82F6;
+            --accent-green: #10B981;
+            --accent-yellow: #F59E0B;
+            --accent-red: #EF4444;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header Navigation */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .header-brand img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .header-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .header-nav a:hover,
+        .header-nav a.active {
+            color: var(--text-primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 96px 24px 40px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title-section h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--text-primary);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .item-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .item-card:hover {
+            border-color: var(--border-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .item-card:hover::before {
+            opacity: 1;
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .item-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-success, .status-active, .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-running, .status-pending {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .status-warning, .status-idle {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-yellow);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-failed, .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .item-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .item-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-primary);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-nav {
+                display: none;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title-section h1 {
+                font-size: 24px;
+            }
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/dashboard" class="header-brand">
+                <img src="https://imagedelivery.net/g7wf09fCONpnidkRnR_5vw/11f6af46-0a3c-482a-abe8-83edc5a8a200/avatar" alt="Inner Animal Media">
+                <span>Inner Animal Media</span>
+            </a>
+            <nav class="header-nav">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/dashboard/pipelines" class="active">Pipelines</a>
+                <a href="/dashboard/workers">Workers</a>
+                <a href="/dashboard/analytics">Analytics</a>
+                <a href="/dashboard/settings">Settings</a>
+            </nav>
+            <div class="user-menu">
+                <div class="user-avatar">SP</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title-section">
+                <h1>Pipelines & Workflows</h1>
+                <p class="page-subtitle">CI/CD, deployments, and automated workflows</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-secondary" onclick="refreshData()">↻ Refresh</button>
+                <button class="btn btn-primary" onclick="alert('Coming soon: Create new workflow')">+ New Workflow</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="builds" onclick="switchTab('builds')">Builds & Deployments</button>
+            <button class="tab" data-tab="workflows" onclick="switchTab('workflows')">AI Workflows</button>
+            <button class="tab" data-tab="workers" onclick="switchTab('workers')">Workers</button>
+            <button class="tab" data-tab="stats" onclick="switchTab('stats')">Statistics</button>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--accent-green);" id="statBuilds">-</div>
+                <div class="stat-label">Total Builds</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--accent-blue);" id="statWorkers">-</div>
+                <div class="stat-label">Active Workers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--accent-yellow);" id="statWorkflows">-</div>
+                <div class="stat-label">AI Workflows</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--text-primary);" id="statCost">$0.00</div>
+                <div class="stat-label">Cost Today</div>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="buildsTab" class="tab-content active">
+            <div class="loading" id="buildsLoading">
+                <div class="loading-spinner"></div>
+                <p>Loading builds...</p>
+            </div>
+            <div class="content-grid" id="buildsGrid" style="display: none;"></div>
+        </div>
+
+        <div id="workflowsTab" class="tab-content">
+            <div class="loading" id="workflowsLoading">
+                <div class="loading-spinner"></div>
+                <p>Loading workflows...</p>
+            </div>
+            <div class="content-grid" id="workflowsGrid" style="display: none;"></div>
+        </div>
+
+        <div id="workersTab" class="tab-content">
+            <div class="loading" id="workersLoading">
+                <div class="loading-spinner"></div>
+                <p>Loading workers...</p>
+            </div>
+            <div class="content-grid" id="workersGrid" style="display: none;"></div>
+        </div>
+
+        <div id="statsTab" class="tab-content">
+            <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <h2 class="empty-state-title">Statistics Dashboard</h2>
+                <p class="empty-state-subtitle">Detailed analytics coming soon</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // API Configuration
+        const API_BASE = 'https://mcp.inneranimalmedia.com/api/dashboard';
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+        });
+
+        async function loadAllData() {
+            await Promise.all([
+                loadStats(),
+                loadBuilds(),
+                loadWorkflows(),
+                loadWorkers()
+            ]);
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    const { builds, workers, workflows, costs } = data.data;
+                    
+                    document.getElementById('statBuilds').textContent = builds?.total_builds || 0;
+                    document.getElementById('statWorkers').textContent = workers?.active_workers || 0;
+                    document.getElementById('statWorkflows').textContent = workflows?.total_workflows || 0;
+                    document.getElementById('statCost').textContent = `$${(costs?.total_cost_today || 0).toFixed(2)}`;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function loadBuilds() {
+            const loading = document.getElementById('buildsLoading');
+            const grid = document.getElementById('buildsGrid');
+            
+            try {
+                const response = await fetch(`${API_BASE}/pipelines`);
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                grid.style.display = 'grid';
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    grid.innerHTML = data.data.map(build => `
+                        <div class="item-card">
+                            <div class="item-header">
+                                <h3 class="item-name">${escapeHtml(build.name || 'Unknown')}</h3>
+                                <span class="item-status status-${(build.status || 'unknown').toLowerCase()}">${build.status || 'Unknown'}</span>
+                            </div>
+                            <div class="item-meta">
+                                <span class="item-meta-item">🚀 #${build.build_number || 0}</span>
+                                <span class="item-meta-item">⏱️ ${formatDuration(build.last_run_duration_ms)}</span>
+                                <span class="item-meta-item">👤 ${escapeHtml(build.created_by || 'system')}</span>
+                            </div>
+                            <p class="item-description">
+                                ${escapeHtml(build.commit_message || 'No commit message')}
+                            </p>
+                            <div class="item-meta">
+                                <span class="item-meta-item">🌍 ${build.environment || 'production'}</span>
+                                <span class="item-meta-item">📅 ${formatTimestamp(build.last_run_at)}</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-primary" onclick="viewBuildLogs('${build.id}')">View Logs</button>
+                                <button class="btn btn-secondary" onclick="openDeployment('${build.deployment_url || ''}')">Open</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><h2 class="empty-state-title">No builds found</h2><p class="empty-state-subtitle">Builds will appear here once deployed</p></div>';
+                }
+            } catch (error) {
+                console.error('Failed to load builds:', error);
+                loading.innerHTML = `<p style="color: var(--accent-red);">Failed to load builds: ${error.message}</p>`;
+            }
+        }
+
+        async function loadWorkflows() {
+            const loading = document.getElementById('workflowsLoading');
+            const grid = document.getElementById('workflowsGrid');
+            
+            try {
+                const response = await fetch(`${API_BASE}/ai-workflows`);
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                grid.style.display = 'grid';
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    grid.innerHTML = data.data.map(workflow => {
+                        const status = workflow.status ? 'active' : 'idle';
+                        return `
+                            <div class="item-card">
+                                <div class="item-header">
+                                    <h3 class="item-name">${escapeHtml(workflow.name || 'Unknown')}</h3>
+                                    <span class="item-status status-${status}">${workflow.status ? 'Active' : 'Inactive'}</span>
+                                </div>
+                                <div class="item-meta">
+                                    <span class="item-meta-item">🔄 ${workflow.workflow_type || 'workflow'}</span>
+                                    <span class="item-meta-item">✓ ${workflow.success_count || 0}</span>
+                                    <span class="item-meta-item">✗ ${workflow.failure_count || 0}</span>
+                                </div>
+                                <p class="item-description">
+                                    ${escapeHtml(workflow.description || 'No description available')}
+                                </p>
+                                <div class="item-meta">
+                                    <span class="item-meta-item">📅 ${formatTimestamp(workflow.last_run_at) || 'Never run'}</span>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn btn-primary" onclick="viewWorkflow('${workflow.id}')">View Details</button>
+                                    <button class="btn btn-secondary" onclick="runWorkflow('${workflow.id}')">▶ Run</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🤖</div><h2 class="empty-state-title">No workflows found</h2><p class="empty-state-subtitle">AI workflows will appear here</p></div>';
+                }
+            } catch (error) {
+                console.error('Failed to load workflows:', error);
+                loading.innerHTML = `<p style="color: var(--accent-red);">Failed to load workflows: ${error.message}</p>`;
+            }
+        }
+
+        async function loadWorkers() {
+            const loading = document.getElementById('workersLoading');
+            const grid = document.getElementById('workersGrid');
+            
+            try {
+                const response = await fetch(`${API_BASE}/deployments`);
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                grid.style.display = 'grid';
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    grid.innerHTML = data.data.map(worker => {
+                        const routes = JSON.parse(worker.routes || '[]');
+                        return `
+                            <div class="item-card">
+                                <div class="item-header">
+                                    <h3 class="item-name">${escapeHtml(worker.worker_name || 'Unknown')}</h3>
+                                    <span class="item-status status-${(worker.status || 'unknown').toLowerCase()}">${worker.status || 'Unknown'}</span>
+                                </div>
+                                <div class="item-meta">
+                                    <span class="item-meta-item">🔗 ${worker.bindings_count || 0} bindings</span>
+                                    <span class="item-meta-item">📊 ${formatNumber(worker.requests_30d || 0)} req</span>
+                                </div>
+                                <p class="item-description">
+                                    ${escapeHtml(worker.notes || worker.last_commit_message || 'No description')}
+                                </p>
+                                <div class="item-meta">
+                                    <span class="item-meta-item">🌐 ${routes[0] || 'No route'}</span>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn btn-primary" onclick="viewWorker('${worker.id}')">Details</button>
+                                    <button class="btn btn-secondary" onclick="openRoute('${routes[0] || ''}')">Open</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚡</div><h2 class="empty-state-title">No workers found</h2><p class="empty-state-subtitle">Workers will appear here</p></div>';
+                }
+            } catch (error) {
+                console.error('Failed to load workers:', error);
+                loading.innerHTML = `<p style="color: var(--accent-red);">Failed to load workers: ${error.message}</p>`;
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        // Utility Functions
+        function formatDuration(ms) {
+            if (!ms) return '-';
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            if (minutes > 0) {
+                return `${minutes}m ${seconds % 60}s`;
+            }
+            return `${seconds}s`;
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp * 1000);
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) return `${days}d ago`;
+            if (hours > 0) return `${hours}h ago`;
+            if (minutes > 0) return `${minutes}m ago`;
+            return 'Just now';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Action Functions
+        function refreshData() {
+            location.reload();
+        }
+
+        function viewBuildLogs(buildId) {
+            alert(`Opening logs for build: ${buildId}`);
+        }
+
+        function openDeployment(url) {
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                alert('No deployment URL available');
+            }
+        }
+
+        function viewWorkflow(workflowId) {
+            alert(`Opening workflow details: ${workflowId}`);
+        }
+
+        function runWorkflow(workflowId) {
+            if (confirm('Run this workflow now?')) {
+                alert(`Starting workflow: ${workflowId}`);
+            }
+        }
+
+        function viewWorker(workerId) {
+            alert(`Opening worker details: ${workerId}`);
+        }
+
+        function openRoute(route) {
+            if (route) {
+                window.open(`https://${route}`, '_blank');
+            } else {
+                alert('No route available');
+            }
+        }
+    </script>
+</body>
+</html>

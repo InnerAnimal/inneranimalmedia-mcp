@@ -4,11 +4,13 @@
  * Connects AI clients (Cursor, Copilot, Claude) to our 30+ Workers ecosystem.
  * R2 tools: r2_list, r2_search, r2_bucket_summary
  * Telemetry: agent_telemetry tracking for LLM usage and costs
+ * Dashboard API: pipelines, workflows, AI operations
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { McpAgent } from "agents/mcp";
 import { z } from "zod";
 import { logTelemetry, queryTelemetry, getTelemetryStats } from "./lib/telemetry.js";
+import * as DashboardAPI from "./api/dashboard.js";
 
 interface Env {
   MCP_BUCKET?: R2Bucket;
@@ -339,6 +341,8 @@ export class InnerAnimalMCP extends McpAgent<Env> {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
+    
+    // MCP Server endpoint
     if (url.pathname === "/mcp") {
       currentEnv = env;
       try {
@@ -347,12 +351,100 @@ export default {
         currentEnv = null;
       }
     }
+
+    // Dashboard API endpoints
+    if (url.pathname.startsWith("/api/dashboard")) {
+      if (!env.DB) {
+        return jsonResponse({ error: "Database not configured" }, 500);
+      }
+
+      try {
+        // CORS headers for dashboard
+        const corsHeaders = {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        };
+
+        if (request.method === "OPTIONS") {
+          return new Response(null, { headers: corsHeaders });
+        }
+
+        // Route handling
+        if (url.pathname === "/api/dashboard/pipelines") {
+          const data = await DashboardAPI.getPipelines(env.DB);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        if (url.pathname === "/api/dashboard/pipeline-runs") {
+          const pipelineId = url.searchParams.get("pipeline_id") || undefined;
+          const limit = parseInt(url.searchParams.get("limit") || "50");
+          const data = await DashboardAPI.getPipelineRuns(env.DB, pipelineId, limit);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        if (url.pathname === "/api/dashboard/ai-workflows") {
+          const data = await DashboardAPI.getAIWorkflows(env.DB);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        if (url.pathname === "/api/dashboard/ai-workflow-executions") {
+          const workflowId = url.searchParams.get("workflow_id") || undefined;
+          const limit = parseInt(url.searchParams.get("limit") || "50");
+          const data = await DashboardAPI.getAIWorkflowExecutions(env.DB, workflowId, limit);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        if (url.pathname === "/api/dashboard/stats") {
+          const data = await DashboardAPI.getDashboardStats(env.DB);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        if (url.pathname === "/api/dashboard/deployments") {
+          const limit = parseInt(url.searchParams.get("limit") || "50");
+          const data = await DashboardAPI.getWorkerDeployments(env.DB, limit);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        if (url.pathname === "/api/dashboard/tables") {
+          const data = await DashboardAPI.getDatabaseTables(env.DB);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        if (url.pathname.startsWith("/api/dashboard/table/")) {
+          const tableName = url.pathname.split("/").pop() || "";
+          const limit = parseInt(url.searchParams.get("limit") || "100");
+          const data = await DashboardAPI.queryTable(env.DB, tableName, limit);
+          return jsonResponse(data, data.success ? 200 : 500, corsHeaders);
+        }
+
+        return jsonResponse({ error: "Dashboard API endpoint not found" }, 404, corsHeaders);
+      } catch (error) {
+        console.error("Dashboard API error:", error);
+        return jsonResponse({
+          error: error instanceof Error ? error.message : "Internal server error"
+        }, 500);
+      }
+    }
+
+    // Root endpoint
     if (url.pathname === "/" || url.pathname === "") {
-      return new Response("Inner Animal Media MCP — use /mcp", {
+      return new Response("Inner Animal Media MCP — use /mcp or /api/dashboard/*", {
         status: 200,
         headers: { "Content-Type": "text/plain" },
       });
     }
+
     return new Response("Not found", { status: 404 });
   },
 };
+
+function jsonResponse(data: any, status = 200, extraHeaders: Record<string, string> = {}) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...extraHeaders,
+    },
+  });
+}
